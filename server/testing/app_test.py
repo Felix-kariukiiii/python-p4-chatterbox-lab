@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from app import app
 from models import db, Message
 
@@ -84,10 +83,14 @@ class TestApp:
             db.session.delete(h)
             db.session.commit()
 
-
     def test_updates_body_of_message_in_database(self):
         '''updates the body of a message in the database.'''
         with app.app_context():
+            # Ensure there is at least one message to update
+            if Message.query.first() is None:
+                new_message = Message(body="Test message", username="TestUser")
+                db.session.add(new_message)
+                db.session.commit()
 
             m = Message.query.first()
             id = m.id
@@ -103,6 +106,7 @@ class TestApp:
             g = Message.query.filter_by(body="Goodbye 👋").first()
             assert(g)
 
+            # Restore original body for future tests
             g.body = body
             db.session.add(g)
             db.session.commit()
@@ -110,6 +114,11 @@ class TestApp:
     def test_returns_data_for_updated_message_as_json(self):
         '''returns data for the updated message as JSON.'''
         with app.app_context():
+            # Ensure there is at least one message to update
+            if Message.query.first() is None:
+                new_message = Message(body="Test message", username="TestUser")
+                db.session.add(new_message)
+                db.session.commit()
 
             m = Message.query.first()
             id = m.id
@@ -126,6 +135,8 @@ class TestApp:
             assert(response.json["body"] == "Goodbye 👋")
 
             g = Message.query.filter_by(body="Goodbye 👋").first()
+
+            # Restore original body for future tests
             g.body = body
             db.session.add(g)
             db.session.commit()
